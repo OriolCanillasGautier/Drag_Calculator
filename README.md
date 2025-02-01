@@ -17,12 +17,16 @@ A Python application for simulating aerodynamic drag forces in a virtual wind tu
 - OpenGL-capable GPU (for hardware acceleration)  
 
 **Installation**  
-1. Install dependencies:  
+1. Install Python:
+
+You can download Python for you Operative System [here](https://www.python.org/downloads/)
+   
+3. Install dependencies:  
 ```bash
 pip install pyvista pyvistaqt numpy ttkthemes vtk
 ```  
 
-2. (Optional) For software rendering:  
+3. (Optional) For software rendering:  
 ```bash
 pip install pyopengl
 ```  
