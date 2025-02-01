@@ -9,6 +9,7 @@ A Python application for simulating aerodynamic drag forces in a virtual wind tu
 - Interactive object manipulation (position, rotation, scaling)  
 - Screenshot export capability  
 - Modern GUI with theme support  
+![For instance, a funny simulation fo a cow](https://github.com/user-attachments/assets/f89f39fe-6576-44ba-83b0-64dcae88b4c2)
 
 **System Requirements**  
 - Python 3.7+  
