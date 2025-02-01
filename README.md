@@ -17,27 +17,22 @@ A Python application for simulating aerodynamic drag forces in a virtual wind tu
 - OpenGL-capable GPU (for hardware acceleration)  
 
 **Installation**  
-1. Clone repository:  
-```bash
-git clone https://github.com/yourusername/virtual-wind-tunnel.git
-cd virtual-wind-tunnel
-```  
-
-2. Install dependencies:  
+1. Install dependencies:  
 ```bash
 pip install pyvista pyvistaqt numpy ttkthemes vtk
 ```  
 
-3. (Optional) For software rendering:  
+2. (Optional) For software rendering:  
 ```bash
 pip install pyopengl
 ```  
 
 **Usage**  
-1. Run the application:  
+1. Run the application from the terminal:  
 ```bash
 python drag_calculator.py
-```  
+```
+*You can run it on windows by double-clicking on the Python file*
 
 2. Interface controls:  
    - **File Menu**: Load STL models  
