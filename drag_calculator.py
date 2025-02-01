@@ -16,29 +16,27 @@ class WindTunnelApp:
         self.range_data = None  # To store range analysis results
         self.setup_main_window()
         self.setup_visualization()
-        self.setup_controls()
-        self.setup_orientation_controls()
-        self.setup_object_controls()
-        self.setup_object_dimensions()  # Controls for STL dimensions
-        self.setup_analysis_panel()     # New analysis panel
+        self.setup_ui_columns()      # New column integration
         self.setup_physics()
 
     def setup_main_window(self):
+        # Set up three columns:
+        # Column 0 and 1 for the control panels and column 2 for the visualization.
         self.root.geometry("1400x900")
         self.main_frame = ttk.Frame(self.root)
         self.main_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Configure grid layout: add row 4 for analysis panel
         self.main_frame.columnconfigure(0, weight=0)
-        self.main_frame.columnconfigure(1, weight=1)
-        for r in range(5):
-            self.main_frame.rowconfigure(r, weight=0)
-        self.main_frame.rowconfigure(0, weight=1)
+        self.main_frame.columnconfigure(1, weight=0)
+        self.main_frame.columnconfigure(2, weight=1)
+        
+        self.left_panel = ttk.Frame(self.main_frame)
+        self.left_panel.grid(row=0, column=0, sticky="ns", padx=10, pady=10)
+        self.right_panel = ttk.Frame(self.main_frame)
+        self.right_panel.grid(row=0, column=1, sticky="ns", padx=10, pady=10)
+        self.qt_frame = ttk.Frame(self.main_frame)
+        self.qt_frame.grid(row=0, column=2, sticky="nsew", padx=10, pady=10)
 
     def setup_visualization(self):
-        self.qt_frame = ttk.Frame(self.main_frame)
-        self.qt_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-
         self.plotter = BackgroundPlotter(show=True)
         self.plotter.set_background('white')
         self.add_wind_direction_indicator()
@@ -61,57 +59,54 @@ class WindTunnelApp:
         self.plotter.add_mesh(arrow, color='gray', opacity=0.5,
                               name='wind_direction', show_edges=False)
 
-    def setup_controls(self):
-        control_frame = ttk.LabelFrame(self.main_frame, text="Simulation Controls")
-        control_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        
-        # Tunnel dimensions
+    def setup_ui_columns(self):
+        # --------------------------
+        # Left Column Panels (Simulation & Object Position)
+        # --------------------------
+        control_frame = ttk.LabelFrame(self.left_panel, text="Simulation Controls")
+        control_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         ttk.Label(control_frame, text="Tunnel Dimensions (m):").grid(row=0, column=0, sticky="w")
         self.tunnel_vars = {
             'length': tk.DoubleVar(value=20),
             'width': tk.DoubleVar(value=10),
             'height': tk.DoubleVar(value=10)
         }
-        for i, (name, var) in enumerate(self.tunnel_vars.items(), 1):
-            ttk.Label(control_frame, text=name.capitalize()).grid(row=i, column=0, sticky="w")
-            ttk.Entry(control_frame, textvariable=var, width=10).grid(row=i, column=1)
-
-        # Flow parameters
-        ttk.Label(control_frame, text="\nFlow Parameters:").grid(row=4, column=0, sticky="w", pady=10)
+        # Tunnel dimensions entries
+        ttk.Label(control_frame, text="Length").grid(row=1, column=0, sticky="w")
+        ttk.Entry(control_frame, textvariable=self.tunnel_vars['length'], width=10).grid(row=1, column=1)
+        ttk.Label(control_frame, text="Width").grid(row=2, column=0, sticky="w")
+        ttk.Entry(control_frame, textvariable=self.tunnel_vars['width'], width=10).grid(row=2, column=1)
+        ttk.Label(control_frame, text="Height").grid(row=3, column=0, sticky="w")
+        ttk.Entry(control_frame, textvariable=self.tunnel_vars['height'], width=10).grid(row=3, column=1)
+        # Button to update tunnel dimensions
+        ttk.Button(control_frame, text="Apply Tunnel Dimensions", command=self.update_tunnel_dimensions).grid(row=4, column=0, columnspan=2, pady=5)
+        
+        # Flow Parameters (shifted down)
+        ttk.Label(control_frame, text="Flow Parameters:").grid(row=5, column=0, sticky="w", pady=(10,0))
         self.flow_vars = {
             'velocity': tk.DoubleVar(value=20),
             'density': tk.DoubleVar(value=1.225),
             'viscosity': tk.DoubleVar(value=1.8e-5)
         }
-        for i, (name, var) in enumerate(self.flow_vars.items(), 5):
-            ttk.Label(control_frame, text=name.capitalize()).grid(row=i, column=0, sticky="w")
-            ttk.Entry(control_frame, textvariable=var, width=10).grid(row=i, column=1)
-
-        # Object controls
-        ttk.Button(control_frame, text="Load STL", command=self.load_stl).grid(row=8, column=0, columnspan=2, pady=10)
-        ttk.Button(control_frame, text="Run Simulation", command=self.run_simulation).grid(row=9, column=0, columnspan=2)
-        ttk.Button(control_frame, text="Visualitza Pressió", command=self.visualize_pressure).grid(row=10, column=0, columnspan=2, pady=5)
-        ttk.Button(control_frame, text="Exporta Captura", command=self.save_screenshot).grid(row=11, column=0, columnspan=2, pady=5)
-        ttk.Button(control_frame, text="Exporta Resultats", command=self.export_single_data).grid(row=12, column=0, columnspan=2, pady=5)
-        ttk.Button(control_frame, text="Save Config", command=self.save_config).grid(row=13, column=0, columnspan=2, pady=5)
-        ttk.Button(control_frame, text="Load Config", command=self.load_config).grid(row=14, column=0, columnspan=2, pady=5)
-
+        ttk.Label(control_frame, text="Velocity").grid(row=6, column=0, sticky="w")
+        ttk.Entry(control_frame, textvariable=self.flow_vars['velocity'], width=10).grid(row=6, column=1)
+        ttk.Label(control_frame, text="Density").grid(row=7, column=0, sticky="w")
+        ttk.Entry(control_frame, textvariable=self.flow_vars['density'], width=10).grid(row=7, column=1)
+        ttk.Label(control_frame, text="Viscosity").grid(row=8, column=0, sticky="w")
+        ttk.Entry(control_frame, textvariable=self.flow_vars['viscosity'], width=10).grid(row=8, column=1)
+        ttk.Button(control_frame, text="Load STL", command=self.load_stl).grid(row=9, column=0, columnspan=2, pady=10)
+        ttk.Button(control_frame, text="Run Simulation", command=self.run_simulation).grid(row=10, column=0, columnspan=2)
+        ttk.Button(control_frame, text="Visualitza Pressió", command=self.visualize_pressure).grid(row=11, column=0, columnspan=2, pady=5)
+        ttk.Button(control_frame, text="Exporta Captura", command=self.save_screenshot).grid(row=12, column=0, columnspan=2, pady=5)
+        ttk.Button(control_frame, text="Exporta Resultats", command=self.export_single_data).grid(row=13, column=0, columnspan=2, pady=5)
+        ttk.Button(control_frame, text="Save Config", command=self.save_config).grid(row=14, column=0, columnspan=2, pady=5)
+        ttk.Button(control_frame, text="Load Config", command=self.load_config).grid(row=15, column=0, columnspan=2, pady=5)
         self.result_var = tk.StringVar()
-        ttk.Label(control_frame, textvariable=self.result_var, wraplength=250).grid(row=15, column=0, columnspan=2)
+        ttk.Label(control_frame, textvariable=self.result_var, wraplength=250).grid(row=16, column=0, columnspan=2)
 
-    def setup_orientation_controls(self):
-        orient_frame = ttk.LabelFrame(self.main_frame, text="Controls d'Orientació")
-        orient_frame.grid(row=2, column=0, sticky="ew", padx=10, pady=10)
-        ttk.Button(orient_frame, text="Rotar X+", command=lambda: self.rotate_object('x', 15)).grid(row=0, column=0, padx=5, pady=5)
-        ttk.Button(orient_frame, text="Rotar X-", command=lambda: self.rotate_object('x', -15)).grid(row=0, column=1, padx=5, pady=5)
-        ttk.Button(orient_frame, text="Rotar Y+", command=lambda: self.rotate_object('y', 15)).grid(row=1, column=0, padx=5, pady=5)
-        ttk.Button(orient_frame, text="Rotar Y-", command=lambda: self.rotate_object('y', -15)).grid(row=1, column=1, padx=5, pady=5)
-        ttk.Button(orient_frame, text="Rotar Z+", command=lambda: self.rotate_object('z', 15)).grid(row=2, column=0, padx=5, pady=5)
-        ttk.Button(orient_frame, text="Rotar Z-", command=lambda: self.rotate_object('z', -15)).grid(row=2, column=1, padx=5, pady=5)
-
-    def setup_object_controls(self):
-        obj_ctrl_frame = ttk.LabelFrame(self.main_frame, text="Object Position Controls")
-        obj_ctrl_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
+        # Object Position Controls below Simulation Controls
+        obj_ctrl_frame = ttk.LabelFrame(self.left_panel, text="Object Position Controls")
+        obj_ctrl_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         ttk.Button(obj_ctrl_frame, text="Center", command=lambda: self.move_object(0, 0, 0)).grid(row=0, column=0)
         ttk.Button(obj_ctrl_frame, text="Floor", command=lambda: self.move_object(z=-4.5)).grid(row=0, column=1)
         ttk.Button(obj_ctrl_frame, text="Left", command=lambda: self.move_object(x=-4)).grid(row=1, column=0)
@@ -121,9 +116,35 @@ class WindTunnelApp:
         for i, (text, pos) in enumerate(views):
             ttk.Button(obj_ctrl_frame, text=text, command=lambda p=pos: self.set_camera_view(p)).grid(row=3+i//2, column=i%2)
 
-    def setup_object_dimensions(self):
-        dims_frame = ttk.LabelFrame(self.main_frame, text="Object Dimensions")
-        dims_frame.grid(row=3, column=0, sticky="ew", padx=10, pady=10)
+        # Velocity Range Analysis (in left panel, below object controls)
+        analysis_frame = ttk.LabelFrame(self.left_panel, text="Velocity Range Analysis")
+        analysis_frame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
+        ttk.Label(analysis_frame, text="Start Velocity (m/s):").grid(row=0, column=0, sticky="w")
+        self.vel_start_var = tk.StringVar(value="0.0")
+        ttk.Entry(analysis_frame, textvariable=self.vel_start_var, width=10).grid(row=0, column=1)
+        ttk.Label(analysis_frame, text="End Velocity (m/s):").grid(row=1, column=0, sticky="w")
+        self.vel_end_var = tk.StringVar(value="30.0")
+        ttk.Entry(analysis_frame, textvariable=self.vel_end_var, width=10).grid(row=1, column=1)
+        ttk.Label(analysis_frame, text="Step (m/s):").grid(row=2, column=0, sticky="w")
+        self.vel_step_var = tk.StringVar(value="0.1")
+        ttk.Entry(analysis_frame, textvariable=self.vel_step_var, width=10).grid(row=2, column=1)
+        ttk.Button(analysis_frame, text="Run Range Analysis", command=self.run_range_analysis).grid(row=3, column=0, columnspan=2, pady=5)
+        ttk.Button(analysis_frame, text="Export Range Data", command=self.export_range_data).grid(row=4, column=0, columnspan=2, pady=5)
+
+        # --------------------------
+        # Right Column Panels (Orientation + Object Dimensions)
+        # --------------------------
+        orient_frame = ttk.LabelFrame(self.right_panel, text="Controls d'Orientació")
+        orient_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        ttk.Button(orient_frame, text="Rotar X+", command=lambda: self.rotate_object('x', 15)).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(orient_frame, text="Rotar X-", command=lambda: self.rotate_object('x', -15)).grid(row=0, column=1, padx=5, pady=5)
+        ttk.Button(orient_frame, text="Rotar Y+", command=lambda: self.rotate_object('y', 15)).grid(row=1, column=0, padx=5, pady=5)
+        ttk.Button(orient_frame, text="Rotar Y-", command=lambda: self.rotate_object('y', -15)).grid(row=1, column=1, padx=5, pady=5)
+        ttk.Button(orient_frame, text="Rotar Z+", command=lambda: self.rotate_object('z', 15)).grid(row=2, column=0, padx=5, pady=5)
+        ttk.Button(orient_frame, text="Rotar Z-", command=lambda: self.rotate_object('z', -15)).grid(row=2, column=1, padx=5, pady=5)
+
+        dims_frame = ttk.LabelFrame(self.right_panel, text="Object Dimensions")
+        dims_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=5)
         self.scale_vars = {
             'scale_x': tk.DoubleVar(value=1.0),
             'scale_y': tk.DoubleVar(value=1.0),
@@ -137,25 +158,19 @@ class WindTunnelApp:
         ttk.Entry(dims_frame, textvariable=self.scale_vars['scale_z'], width=10).grid(row=2, column=1, padx=5, pady=2)
         ttk.Button(dims_frame, text="Apply Scale", command=self.scale_object).grid(row=3, column=0, columnspan=2, pady=5)
 
-    def setup_analysis_panel(self):
-        analysis_frame = ttk.LabelFrame(self.main_frame, text="Velocity Range Analysis")
-        analysis_frame.grid(row=4, column=0, sticky="ew", padx=10, pady=10)
-        ttk.Label(analysis_frame, text="Start Velocity (m/s):").grid(row=0, column=0, sticky="w")
-        self.vel_start_var = tk.StringVar(value="0.0")
-        ttk.Entry(analysis_frame, textvariable=self.vel_start_var, width=10).grid(row=0, column=1)
-        ttk.Label(analysis_frame, text="End Velocity (m/s):").grid(row=1, column=0, sticky="w")
-        self.vel_end_var = tk.StringVar(value="30.0")
-        ttk.Entry(analysis_frame, textvariable=self.vel_end_var, width=10).grid(row=1, column=1)
-        ttk.Label(analysis_frame, text="Step (m/s):").grid(row=2, column=0, sticky="w")
-        self.vel_step_var = tk.StringVar(value="0.1")
-        ttk.Entry(analysis_frame, textvariable=self.vel_step_var, width=10).grid(row=2, column=1)
-        ttk.Button(analysis_frame, text="Run Range Analysis", command=self.run_range_analysis).grid(row=3, column=0, columnspan=2, pady=5)
-        ttk.Button(analysis_frame, text="Export Range Data", command=self.export_range_data).grid(row=4, column=0, columnspan=2, pady=5)
-
     def setup_physics(self):
         self.drag_coefficient = 0.3
         self.object_position = [0, 0, 0]
         self.current_stl = None
+
+    def update_tunnel_dimensions(self):
+        try:
+            self.plotter.remove_actor('tunnel')
+        except Exception:
+            pass
+        self.draw_tunnel()
+        self.plotter.update()
+        self.result_var.set("Tunnel dimensions updated.")
 
     def load_stl(self):
         file_path = filedialog.askopenfilename(filetypes=[("STL Files", "*.stl")])
@@ -221,7 +236,6 @@ class WindTunnelApp:
         try:
             velocity = self.flow_vars['velocity'].get()
             density = self.flow_vars['density'].get()
-            # Calculate frontal area
             bounds = self.current_stl.bounds if self.current_stl else [0]*6
             frontal_area = (bounds[3] - bounds[2]) * (bounds[5] - bounds[4])
             drag_force = 0.5 * density * (velocity ** 2) * frontal_area * self.drag_coefficient
@@ -245,8 +259,8 @@ class WindTunnelApp:
                             spacing=(2, 2, 2),
                             origin=(-10, -5, -5))
         grid['vectors'] = np.zeros((grid.n_points, 3))
-        grid['vectors'][:, 0] = velocity  # Flow in X direction
-        factor = 0.05 * velocity  # arrows scale with velocity
+        grid['vectors'][:, 0] = velocity
+        factor = 0.05 * velocity
         arrows = grid.glyph(orient='vectors', scale=False, factor=factor)
         self.plotter.add_mesh(arrows, color='red', opacity=0.3, name='flow_arrows', show_edges=False)
 
@@ -285,15 +299,14 @@ class WindTunnelApp:
             step = float(self.vel_step_var.get())
             if step <= 0 or vs >= ve:
                 raise ValueError("Invalid velocity range or step.")
-            densities = self.flow_vars['density'].get()
-            # Use object bounds if available
+            density = self.flow_vars['density'].get()
             if self.current_stl:
                 bounds = self.current_stl.bounds
             else:
                 bounds = [-10, 10, -5, 5, 0, 10]
             frontal_area = (bounds[3] - bounds[2]) * (bounds[5] - bounds[4])
             velocities = np.arange(vs, ve+step/2, step)
-            drag_forces = 0.5 * densities * (velocities ** 2) * frontal_area * self.drag_coefficient
+            drag_forces = 0.5 * density * (velocities ** 2) * frontal_area * self.drag_coefficient
             powers = drag_forces * velocities
             self.range_data = {
                 "velocities": velocities.tolist(),
@@ -407,7 +420,6 @@ class WindTunnelApp:
                     var.set(config.get("scale", {}).get(k, var.get()))
                 self.object_position = config.get("object_position", self.object_position)
                 self.result_var.set("Config loaded.")
-                # Optionally update the tunnel if needed.
             else:
                 self.result_var.set("Config load cancelled.")
         except Exception as e:
