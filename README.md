@@ -29,14 +29,7 @@ A Python application for simulating aerodynamic drag forces in a virtual wind tu
 
    Download and install Python for your operating system from the [official website](https://www.python.org/downloads/).
 
-2. **Clone the Repository**
-
-   ```bash
-   git clone https://github.com/OriolCanillasGautier/Drag_Calculator.git
-   cd virtual-wind-tunnel
-   ```
-
-3. **Install Dependencies**
+2. **Install Dependencies**
 
    Install the required packages using pip:
 
@@ -44,7 +37,7 @@ A Python application for simulating aerodynamic drag forces in a virtual wind tu
    pip install pyvista pyvistaqt numpy ttkthemes vtk
    ```
 
-4. **(Optional) Software Rendering**
+3. **(Optional) Software Rendering**
 
    For systems without proper GPU support or if you prefer software rendering:
 
